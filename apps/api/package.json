@@ -1,0 +1,24 @@
+{
+  "name": "@frameitup/api",
+  "version": "0.0.1",
+  "private": true,
+  "description": "FrameItUp — API GraphQL via Convex HTTP Actions",
+  "scripts": {
+    "dev": "convex dev",
+    "build": "convex deploy --typecheck=disable",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src convex --ext .ts"
+  },
+  "dependencies": {
+    "@frameitup/types": "file:../../packages/types",
+    "@frameitup/convex": "file:../../packages/convex",
+    "@pothos/core": "^4.2.0",
+    "convex": "^1.17.0",
+    "graphql": "^16.9.0",
+    "graphql-yoga": "^5.7.0"
+  },
+  "devDependencies": {
+    "@frameitup/config": "file:../../packages/config",
+    "typescript": "^5.7.0"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "@frameitup/config",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Shared configurations (TypeScript, ESLint, Tailwind) for the FrameItUp monorepo",
+  "exports": {
+    "./typescript/*": "./typescript/*",
+    "./eslint/*": "./eslint/*",
+    "./tailwind/*": "./tailwind/*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  }
+}

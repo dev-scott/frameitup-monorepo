@@ -1,0 +1,39 @@
+{
+  "name": "@frameitup/dashboard",
+  "version": "0.0.1",
+  "private": true,
+  "description": "FrameItUp — Dashboard d'administration (stock, commandes, finances)",
+  "scripts": {
+    "dev": "next dev --port 3001",
+    "build": "next build",
+    "start": "next start --port 3001",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@frameitup/types": "file:../../packages/types",
+    "@frameitup/ui": "file:../../packages/ui",
+    "@frameitup/convex": "file:../../packages/convex",
+    "convex": "^1.17.0",
+    "next": "15.3.4",
+    "next-auth": "^5.0.0-beta.25",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "recharts": "^2.13.0",
+    "lucide-react": "^0.462.0",
+    "date-fns": "^4.1.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.5.4"
+  },
+  "devDependencies": {
+    "@frameitup/config": "file:../../packages/config",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.3.0",
+    "tailwindcss": "^4",
+    "typescript": "^5.7.0"
+  }
+}

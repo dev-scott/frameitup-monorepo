@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "allowImportingTsExtensions": false,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "paths": {
+      "@frameitup/ui": ["./packages/ui/src/index.ts"],
+      "@frameitup/types": ["./packages/types/src/index.ts"],
+      "@frameitup/config/*": ["./packages/config/*"],
+      "@frameitup/convex": ["./packages/convex/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "**/node_modules", "**/dist", "**/.next"]
+}

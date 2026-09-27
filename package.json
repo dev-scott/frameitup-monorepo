@@ -1,0 +1,27 @@
+{
+  "name": "frameitup",
+  "version": "0.0.0",
+  "private": true,
+  "description": "FrameItUp — Monorepo (e-commerce · dashboard · API GraphQL)",
+  "scripts": {
+    "dev": "pnpm --parallel -r --filter \"./apps/*\" run dev",
+    "dev:web": "pnpm --filter @frameitup/web run dev",
+    "dev:dashboard": "pnpm --filter @frameitup/dashboard run dev",
+    "dev:api": "pnpm --filter @frameitup/api run dev",
+    "build": "pnpm -r --filter \"./apps/*\" run build",
+    "lint": "pnpm -r run lint",
+    "typecheck": "pnpm -r run typecheck",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
+    "install:dashboard": "pnpm --filter @frameitup/dashboard install",
+    "install:web": "pnpm --filter @frameitup/web install"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@11.24.0"
+}
