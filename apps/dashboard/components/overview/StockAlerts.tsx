@@ -1,19 +1,15 @@
 "use client";
 
-import { AlertTriangle, AlertCircle, ChevronRight } from "lucide-react";
+import { AlertTriangle, AlertCircle, ChevronRight, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
-
-const MOCK_ALERTS = [
-  { sku: "MOU-NOIR-01", name: "Moulure Chêne Noir", qty: 2, threshold: 10, severity: "critical" as const },
-  { sku: "VER-UV-30",   name: "Verre antireflet UV", qty: 5, threshold: 10, severity: "critical" as const },
-  { sku: "PAS-BLA-A4",  name: "Passe-partout blanc A4", qty: 8, threshold: 15, severity: "warning" as const },
-  { sku: "CHR-METAL-S", name: "Crochet métal small", qty: 12, threshold: 20, severity: "warning" as const },
-  { sku: "COR-NAT-60",  name: "Cornière naturelle 60cm", qty: 7, threshold: 20, severity: "warning" as const },
-];
+import { useQuery } from "convex/react";
+import { api } from "@/lib/convex";
 
 export function StockAlerts() {
-  const critical = MOCK_ALERTS.filter((a) => a.severity === "critical");
-  const warnings = MOCK_ALERTS.filter((a) => a.severity === "warning");
+  const alerts = useQuery(api.queries.stock.alerts);
+
+  const critical = alerts?.filter((a: any) => a.severity === "critical") ?? [];
+  const warnings = alerts?.filter((a: any) => a.severity === "warning") ?? [];
 
   return (
     <div className="glass-card" style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -67,42 +63,52 @@ export function StockAlerts() {
 
       {/* List */}
       <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-        {MOCK_ALERTS.map((alert) => (
-          <div
-            key={alert.sku}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.75rem",
-              padding: "0.625rem 0.75rem",
-              borderRadius: 10,
-              background: "var(--surface-800)",
-              border: `1px solid ${alert.severity === "critical" ? "hsl(350 89% 56% / 0.15)" : "hsl(43 80% 42% / 0.1)"}`,
-            }}
-          >
-            {alert.severity === "critical" ? (
-              <AlertCircle size={16} style={{ color: "var(--danger)", flexShrink: 0 }} />
-            ) : (
-              <AlertTriangle size={16} style={{ color: "var(--warning)", flexShrink: 0 }} />
-            )}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: "0.8125rem", fontWeight: 500, color: "white", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {alert.name}
-              </div>
-              <div style={{ fontSize: "0.6875rem", color: "var(--text-muted)" }}>{alert.sku}</div>
-            </div>
+        {alerts === undefined ? (
+          <div style={{ fontSize: "0.8125rem", color: "var(--text-muted)", textAlign: "center", padding: "1rem" }}>
+            Vérification des stocks...
+          </div>
+        ) : alerts.length === 0 ? (
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "1rem", color: "var(--success)", fontSize: "0.8125rem", justifyContent: "center" }}>
+            <CheckCircle2 size={16} /> Tous les niveaux de stock sont optimaux
+          </div>
+        ) : (
+          alerts.map((alert: any) => (
             <div
+              key={alert.sku}
               style={{
-                fontSize: "0.8125rem",
-                fontWeight: 700,
-                color: alert.severity === "critical" ? "var(--danger)" : "var(--warning)",
-                flexShrink: 0,
+                display: "flex",
+                alignItems: "center",
+                gap: "0.75rem",
+                padding: "0.625rem 0.75rem",
+                borderRadius: 10,
+                background: "var(--surface-800)",
+                border: `1px solid ${alert.severity === "critical" ? "hsl(350 89% 56% / 0.15)" : "hsl(43 80% 42% / 0.1)"}`,
               }}
             >
-              {alert.qty}/{alert.threshold}
+              {alert.severity === "critical" ? (
+                <AlertCircle size={16} style={{ color: "var(--danger)", flexShrink: 0 }} />
+              ) : (
+                <AlertTriangle size={16} style={{ color: "var(--warning)", flexShrink: 0 }} />
+              )}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: "0.8125rem", fontWeight: 500, color: "white", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {alert.name}
+                </div>
+                <div style={{ fontSize: "0.6875rem", color: "var(--text-muted)" }}>{alert.sku}</div>
+              </div>
+              <div
+                style={{
+                  fontSize: "0.8125rem",
+                  fontWeight: 700,
+                  color: alert.severity === "critical" ? "var(--danger)" : "var(--warning)",
+                  flexShrink: 0,
+                }}
+              >
+                {alert.qty}/{alert.threshold}
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

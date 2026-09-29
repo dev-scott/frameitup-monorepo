@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   AreaChart,
   Area,
@@ -10,26 +10,13 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { useQuery } from "convex/react";
+import { api } from "@/lib/convex";
 
-// Données de démonstration — 30 jours glissants
-const generateData = (days: number) => {
-  const data = [];
-  const now = new Date();
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
-    const label = d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
-    const revenus  = Math.round(50000 + Math.random() * 450000);
-    const depenses = Math.round(20000 + Math.random() * 200000);
-    data.push({ date: label, revenus, depenses });
-  }
-  return data;
-};
-
-const DATASETS: Record<string, ReturnType<typeof generateData>> = {
-  "7J":  generateData(7),
-  "30J": generateData(30),
-  "3M":  generateData(90),
+const PERIOD_DAYS: Record<"7J" | "30J" | "3M", number> = {
+  "7J": 7,
+  "30J": 30,
+  "3M": 90,
 };
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -60,10 +47,38 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export function RevenueChart() {
   const [period, setPeriod] = useState<"7J" | "30J" | "3M">("30J");
-  const data = DATASETS[period] ?? DATASETS["30J"];
+  const days = PERIOD_DAYS[period];
 
-  const totalRevenu = data.reduce((s, d) => s + d.revenus, 0);
-  const totalDepense = data.reduce((s, d) => s + d.depenses, 0);
+  const dbData = useQuery(api.queries.analytics.dailyRevenue, { days });
+
+  // Préparer un jeu de données complet pour chaque jour
+  const chartData = useMemo(() => {
+    const mapByDate = new Map<string, { revenue: number; expenses: number }>();
+    if (dbData) {
+      for (const item of dbData) {
+        mapByDate.set(item.date, { revenue: item.revenue, expenses: item.expenses });
+      }
+    }
+
+    const result = [];
+    const now = new Date();
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const isoDate = d.toISOString().split("T")[0]!;
+      const label = d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+      const record = mapByDate.get(isoDate) ?? { revenue: 0, expenses: 0 };
+      result.push({
+        date: label,
+        revenus: record.revenue,
+        depenses: record.expenses,
+      });
+    }
+    return result;
+  }, [dbData, days]);
+
+  const totalRevenu = chartData.reduce((s, d) => s + d.revenus, 0);
+  const totalDepense = chartData.reduce((s, d) => s + d.depenses, 0);
 
   return (
     <div className="glass-card animate-fade-in" style={{ padding: "1.5rem" }}>
@@ -76,13 +91,13 @@ export function RevenueChart() {
           <div style={{ display: "flex", gap: "1.25rem", marginTop: "0.5rem" }}>
             <span style={{ fontSize: "0.8125rem", color: "var(--text-muted)" }}>
               <span style={{ color: "hsl(43,80%,56%)", fontWeight: 600 }}>
-                {(totalRevenu / 1000).toFixed(0)}k FCFA
+                {totalRevenu.toLocaleString("fr-FR")} FCFA
               </span>
               {" "}revenus
             </span>
             <span style={{ fontSize: "0.8125rem", color: "var(--text-muted)" }}>
               <span style={{ color: "hsl(350,89%,66%)", fontWeight: 600 }}>
-                {(totalDepense / 1000).toFixed(0)}k FCFA
+                {totalDepense.toLocaleString("fr-FR")} FCFA
               </span>
               {" "}dépenses
             </span>
@@ -116,7 +131,7 @@ export function RevenueChart() {
 
       {/* Chart */}
       <ResponsiveContainer width="100%" height={240}>
-        <AreaChart data={data} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
+        <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
           <defs>
             <linearGradient id="gradRevenu" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%"  stopColor="hsl(43,80%,42%)"  stopOpacity={0.35} />

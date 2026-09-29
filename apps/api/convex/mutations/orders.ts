@@ -30,7 +30,7 @@ export const updateStatus = mutation({
 
     await ctx.db.patch(order._id, {
       status: args.status,
-      updatedAt: Date.now(),
+      // updatedAt: not in schema — Convex tracks _creationTime automatically
     });
 
     return { success: true, orderNumber: args.orderNumber, status: args.status };
@@ -41,19 +41,30 @@ export const create = mutation({
   args: {
     customerEmail: v.string(),
     customerPhone: v.optional(v.string()),
-    items: v.array(
+    // Schema uses "lines" (not "items") with the full line shape
+    lines: v.array(
       v.object({
         productId: v.id("products"),
+        sku: v.string(),
+        name: v.string(),
         quantity: v.number(),
         unitPriceAmount: v.number(),
-        totalAmount: v.number(),
-        name: v.string(),
+        unitPriceCurrency: v.string(),
+        subtotalAmount: v.number(),
+        customization: v.optional(
+          v.object({
+            width: v.optional(v.number()),
+            height: v.optional(v.number()),
+            frameStyle: v.optional(v.string()),
+            passepartout: v.optional(v.boolean()),
+            imageUrl: v.optional(v.string()),
+          })
+        ),
       })
     ),
     subtotalAmount: v.number(),
-    shippingAmount: v.number(),
+    shippingFeeAmount: v.number(), // matches schema field name
     discountAmount: v.number(),
-    taxAmount: v.number(),
     totalAmount: v.number(),
     currency: v.string(),
     shippingAddress: v.object({
@@ -64,11 +75,10 @@ export const create = mutation({
       country: v.string(),
       zipCode: v.optional(v.string()),
     }),
-    paymentMethod: v.string(),
+    paymentMethod: v.optional(v.string()),
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const timestamp = Date.now();
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
     const orderNumber = `CMD-${new Date().getFullYear()}-${randomSuffix}`;
 
@@ -79,17 +89,15 @@ export const create = mutation({
       status: "pending",
       paymentStatus: "pending",
       paymentMethod: args.paymentMethod,
-      items: args.items,
+      lines: args.lines,
       subtotalAmount: args.subtotalAmount,
-      shippingAmount: args.shippingAmount,
+      shippingFeeAmount: args.shippingFeeAmount,
       discountAmount: args.discountAmount,
-      taxAmount: args.taxAmount,
       totalAmount: args.totalAmount,
       currency: args.currency,
       shippingAddress: args.shippingAddress,
       notes: args.notes,
-      createdAt: timestamp,
-      updatedAt: timestamp,
+      // _creationTime is auto-managed by Convex — no createdAt/updatedAt needed
     });
 
     return { orderId, orderNumber };

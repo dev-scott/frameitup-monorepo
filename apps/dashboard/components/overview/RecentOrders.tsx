@@ -2,27 +2,33 @@
 
 import Link from "next/link";
 import { ChevronRight, ExternalLink } from "lucide-react";
+import { useQuery } from "convex/react";
+import { api } from "@/lib/convex";
 
 const STATUS_CONFIG = {
-  pending:    { label: "En attente",   className: "badge badge-pending" },
-  confirmed:  { label: "Confirmée",    className: "badge badge-confirmed" },
+  pending:    { label: "En attente",     className: "badge badge-pending" },
+  confirmed:  { label: "Confirmée",      className: "badge badge-confirmed" },
   processing: { label: "En fabrication", className: "badge badge-processing" },
-  ready:      { label: "Prête",        className: "badge badge-delivered" },
-  shipped:    { label: "Expédiée",     className: "badge badge-confirmed" },
-  delivered:  { label: "Livrée",       className: "badge badge-delivered" },
-  cancelled:  { label: "Annulée",      className: "badge badge-cancelled" },
-  refunded:   { label: "Remboursée",   className: "badge badge-cancelled" },
+  ready:      { label: "Prête",          className: "badge badge-delivered" },
+  shipped:    { label: "Expédiée",       className: "badge badge-confirmed" },
+  delivered:  { label: "Livrée",         className: "badge badge-delivered" },
+  cancelled:  { label: "Annulée",        className: "badge badge-cancelled" },
+  refunded:   { label: "Remboursée",     className: "badge badge-cancelled" },
 } as const;
 
-const MOCK_ORDERS = [
-  { id: "1", orderNumber: "#FIU-2026-0127", customer: "Kouassi Amani", email: "k.amani@mail.ci", status: "processing" as const, total: "185 000 FCFA", date: "Il y a 12 min" },
-  { id: "2", orderNumber: "#FIU-2026-0126", customer: "Fatou Diallo",  email: "f.diallo@gmail.com", status: "pending" as const, total: "72 000 FCFA", date: "Il y a 1h" },
-  { id: "3", orderNumber: "#FIU-2026-0125", customer: "Jean-Marc Bah", email: "jm.bah@outlook.com", status: "delivered" as const, total: "340 000 FCFA", date: "Il y a 3h" },
-  { id: "4", orderNumber: "#FIU-2026-0124", customer: "Aminata Koné",  email: "a.kone@yahoo.fr",  status: "confirmed" as const, total: "98 500 FCFA", date: "Il y a 5h" },
-  { id: "5", orderNumber: "#FIU-2026-0123", customer: "David Mensah",  email: "d.mensah@mail.gh",  status: "shipped" as const, total: "215 000 FCFA", date: "Hier" },
-];
+function formatRelativeTime(timestamp: number) {
+  const diffMinutes = Math.floor((Date.now() - timestamp) / (60 * 1000));
+  if (diffMinutes < 1) return "À l'instant";
+  if (diffMinutes < 60) return `Il y a ${diffMinutes} min`;
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `Il y a ${diffHours} h`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `Il y a ${diffDays} j`;
+}
 
 export function RecentOrders() {
+  const orders = useQuery(api.queries.orders.recentOrders, { limit: 5 });
+
   return (
     <div className="glass-card" style={{ padding: "1.5rem" }}>
       {/* Header */}
@@ -32,7 +38,7 @@ export function RecentOrders() {
             Commandes récentes
           </h2>
           <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)", margin: "4px 0 0" }}>
-            5 dernières commandes
+            Données synchronisées en temps réel avec Convex
           </p>
         </div>
         <Link
@@ -57,60 +63,78 @@ export function RecentOrders() {
       </div>
 
       {/* Table */}
-      <table className="data-table">
-        <thead>
-          <tr>
-            <th>Commande</th>
-            <th>Client</th>
-            <th>Statut</th>
-            <th style={{ textAlign: "right" }}>Montant</th>
-            <th>Date</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {MOCK_ORDERS.map((order) => {
-            const statusCfg = STATUS_CONFIG[order.status];
-            return (
-              <tr key={order.id}>
-                <td>
-                  <span style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: "0.8125rem", color: "var(--brand-300)" }}>
-                    {order.orderNumber}
-                  </span>
-                </td>
-                <td>
-                  <div style={{ color: "white", fontWeight: 500, fontSize: "0.875rem" }}>{order.customer}</div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{order.email}</div>
-                </td>
-                <td>
-                  <span className={statusCfg.className}>{statusCfg.label}</span>
-                </td>
-                <td style={{ textAlign: "right", fontWeight: 600, color: "white" }}>
-                  {order.total}
-                </td>
-                <td style={{ whiteSpace: "nowrap", fontSize: "0.8125rem" }}>{order.date}</td>
-                <td>
-                  <button
-                    style={{
-                      background: "transparent",
-                      border: "none",
-                      cursor: "pointer",
-                      color: "var(--text-muted)",
-                      padding: "4px",
-                      borderRadius: 6,
-                      display: "flex",
-                      alignItems: "center",
-                    }}
-                    aria-label={`Voir la commande ${order.orderNumber}`}
-                  >
-                    <ExternalLink size={14} />
-                  </button>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      {orders === undefined ? (
+        <div style={{ padding: "2rem", textAlign: "center", color: "var(--text-muted)", fontSize: "0.875rem" }}>
+          Chargement des commandes depuis Convex...
+        </div>
+      ) : orders.length === 0 ? (
+        <div style={{ padding: "2rem", textAlign: "center", color: "var(--text-muted)", fontSize: "0.875rem" }}>
+          Aucune commande enregistrée pour le moment.
+        </div>
+      ) : (
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Commande</th>
+              <th>Client</th>
+              <th>Statut</th>
+              <th style={{ textAlign: "right" }}>Montant</th>
+              <th>Date</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders.map((order: any) => {
+              const statusCfg = STATUS_CONFIG[order.status as keyof typeof STATUS_CONFIG] ?? {
+                label: order.status,
+                className: "badge badge-pending",
+              };
+              const customerName = order.shippingAddress?.fullName ?? "Client";
+              const totalFormatted = `${order.totalAmount.toLocaleString("fr-FR")} FCFA`;
+              const dateFormatted = formatRelativeTime(order._creationTime);
+
+              return (
+                <tr key={order._id}>
+                  <td>
+                    <span style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: "0.8125rem", color: "var(--brand-300)" }}>
+                      {order.orderNumber}
+                    </span>
+                  </td>
+                  <td>
+                    <div style={{ color: "white", fontWeight: 500, fontSize: "0.875rem" }}>{customerName}</div>
+                    <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{order.customerEmail}</div>
+                  </td>
+                  <td>
+                    <span className={statusCfg.className}>{statusCfg.label}</span>
+                  </td>
+                  <td style={{ textAlign: "right", fontWeight: 600, color: "white" }}>
+                    {totalFormatted}
+                  </td>
+                  <td style={{ whiteSpace: "nowrap", fontSize: "0.8125rem" }}>{dateFormatted}</td>
+                  <td>
+                    <Link
+                      href={`/orders?id=${order._id}`}
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        cursor: "pointer",
+                        color: "var(--text-muted)",
+                        padding: "4px",
+                        borderRadius: 6,
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                      aria-label={`Voir la commande ${order.orderNumber}`}
+                    >
+                      <ExternalLink size={14} />
+                    </Link>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }

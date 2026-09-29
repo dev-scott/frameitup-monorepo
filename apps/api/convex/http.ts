@@ -100,7 +100,7 @@ async function executeGraphQL(
     // Products query
     if (/products\s*(\(|$|\{)/.test(clean)) {
       const limitMatch = clean.match(/limit\s*:\s*(\d+)/);
-      const limit = limitMatch ? parseInt(limitMatch[1], 10) : (variables.limit ?? 20);
+      const limit = limitMatch ? parseInt(limitMatch[1] ?? "20", 10) : (variables.limit ?? 20);
       const categoryMatch = clean.match(/category\s*:\s*"([^"]+)"/);
       const category = categoryMatch ? categoryMatch[1] : variables.category;
 
@@ -128,14 +128,14 @@ async function executeGraphQL(
     // Recent orders query
     if (/recentOrders\b/.test(clean)) {
       const limitMatch = clean.match(/limit\s*:\s*(\d+)/);
-      const limit = limitMatch ? parseInt(limitMatch[1], 10) : (variables.limit ?? 10);
+      const limit = limitMatch ? parseInt(limitMatch[1] ?? "10", 10) : (variables.limit ?? 10);
       data["recentOrders"] = await ctx.runQuery(api.queries.orders.recentOrders, { limit });
     }
 
     // Orders query
     if (/orders\s*(\(|$|\{)/.test(clean) && !/recentOrders/.test(clean)) {
       const limitMatch = clean.match(/limit\s*:\s*(\d+)/);
-      const limit = limitMatch ? parseInt(limitMatch[1], 10) : (variables.limit ?? 20);
+      const limit = limitMatch ? parseInt(limitMatch[1] ?? "20", 10) : (variables.limit ?? 20);
       const statusMatch = clean.match(/status\s*:\s*"([^"]+)"/);
       const status = statusMatch ? statusMatch[1] : variables.status;
 
@@ -174,7 +174,7 @@ async function executeGraphQL(
       const deltaMatch = clean.match(/delta\s*:\s*(-?\d+)/);
       const reasonMatch = clean.match(/reason\s*:\s*"([^"]+)"/);
       const sku = skuMatch ? skuMatch[1] : variables.sku;
-      const delta = deltaMatch ? parseInt(deltaMatch[1], 10) : variables.delta;
+      const delta = deltaMatch ? parseInt(deltaMatch[1] ?? "0", 10) : variables.delta;
       const reason = (reasonMatch ? reasonMatch[1] : variables.reason) ?? "adjustment";
 
       data["adjustStock"] = await ctx.runMutation(api.mutations.stock.adjust, {

@@ -13,15 +13,43 @@ export const list = query({
     paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, args) => {
-    let q = ctx.db.query("products");
-
     if (args.status) {
-      q = q.withIndex("by_status", (q) => q.eq("status", args.status as any));
-    } else if (args.category) {
-      q = q.withIndex("by_category", (q) => q.eq("category", args.category as any));
+      return await ctx.db
+        .query("products")
+        .withIndex("by_status", (q) => q.eq("status", args.status as any))
+        .paginate(args.paginationOpts);
     }
+    if (args.category) {
+      return await ctx.db
+        .query("products")
+        .withIndex("by_category", (q) => q.eq("category", args.category as any))
+        .paginate(args.paginationOpts);
+    }
+    return await ctx.db.query("products").paginate(args.paginationOpts);
+  },
+});
 
-    return await q.paginate(args.paginationOpts);
+export const listAll = query({
+  args: {
+    category: v.optional(v.string()),
+    status: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    if (args.status && args.status !== "all") {
+      return await ctx.db
+        .query("products")
+        .withIndex("by_status", (q) => q.eq("status", args.status as any))
+        .order("desc")
+        .collect();
+    }
+    if (args.category && args.category !== "all") {
+      return await ctx.db
+        .query("products")
+        .withIndex("by_category", (q) => q.eq("category", args.category as any))
+        .order("desc")
+        .collect();
+    }
+    return await ctx.db.query("products").order("desc").collect();
   },
 });
 

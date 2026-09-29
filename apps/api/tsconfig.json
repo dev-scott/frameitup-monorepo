@@ -1,0 +1,23 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    // Path aliases re-declared relative to this package
+    "paths": {
+      "@frameitup/types": ["../../packages/types/src/index.ts"],
+      "@frameitup/convex": ["../../packages/convex/src/index.ts"],
+      "@frameitup/config/*": ["../../packages/config/*"]
+    }
+  },
+  // convex/ has its own tsconfig.json with the correct runtime lib settings (dom, ES2023).
+  // Exclude it here to avoid conflicts (Response, URL, etc. globals).
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "convex"]
+}

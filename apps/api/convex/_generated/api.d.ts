@@ -13,8 +13,12 @@ import type * as mutations_orders from "../mutations/orders.js";
 import type * as mutations_products from "../mutations/products.js";
 import type * as mutations_stock from "../mutations/stock.js";
 import type * as queries_analytics from "../queries/analytics.js";
+import type * as queries_customers from "../queries/customers.js";
+import type * as queries_finances from "../queries/finances.js";
 import type * as queries_orders from "../queries/orders.js";
 import type * as queries_products from "../queries/products.js";
+import type * as queries_stock from "../queries/stock.js";
+import type * as seed from "../seed.js";
 
 import type {
   ApiFromModules,
@@ -28,8 +32,12 @@ declare const fullApi: ApiFromModules<{
   "mutations/products": typeof mutations_products;
   "mutations/stock": typeof mutations_stock;
   "queries/analytics": typeof queries_analytics;
+  "queries/customers": typeof queries_customers;
+  "queries/finances": typeof queries_finances;
   "queries/orders": typeof queries_orders;
   "queries/products": typeof queries_products;
+  "queries/stock": typeof queries_stock;
+  seed: typeof seed;
 }>;
 
 /**

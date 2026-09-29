@@ -29,6 +29,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false }, // Dashboard not indexed
 };
 
+import { ConvexClientProvider } from "@/lib/ConvexClientProvider";
+
 export default function RootLayout({
   children,
 }: {
@@ -40,7 +42,9 @@ export default function RootLayout({
       className={`${inter.variable} ${outfit.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
-      <body style={{ background: "var(--surface-950)", color: "white" }}>{children}</body>
+      <body style={{ background: "var(--surface-950)", color: "white" }}>
+        <ConvexClientProvider>{children}</ConvexClientProvider>
+      </body>
     </html>
   );
 }

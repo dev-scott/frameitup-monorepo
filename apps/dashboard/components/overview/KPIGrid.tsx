@@ -1,5 +1,7 @@
 "use client";
 
+import { useQuery } from "convex/react";
+import { api } from "@/lib/convex";
 import { TrendingUp, TrendingDown, ShoppingBag, Users, Package, DollarSign } from "lucide-react";
 
 interface KPICardProps {
@@ -76,43 +78,49 @@ function KPICard({ label, value, delta, icon: Icon, iconColor, iconBg, delay = 0
   );
 }
 
-// Données de démonstration — remplacer par données Convex
-const KPI_DATA: KPICardProps[] = [
-  {
-    label: "Revenus ce mois",
-    value: "4 820 000 FCFA",
-    delta: 12.5,
-    icon: DollarSign,
-    iconColor: "hsl(43, 80%, 42%)",
-    iconBg: "hsl(43 80% 42% / 0.15)",
-  },
-  {
-    label: "Commandes",
-    value: "127",
-    delta: 8.2,
-    icon: ShoppingBag,
-    iconColor: "hsl(210, 100%, 60%)",
-    iconBg: "hsl(210 100% 60% / 0.15)",
-  },
-  {
-    label: "Nouveaux clients",
-    value: "43",
-    delta: -3.1,
-    icon: Users,
-    iconColor: "hsl(270, 80%, 65%)",
-    iconBg: "hsl(270 80% 65% / 0.15)",
-  },
-  {
-    label: "Alertes stock",
-    value: "7",
-    delta: -28,
-    icon: Package,
-    iconColor: "hsl(350, 89%, 60%)",
-    iconBg: "hsl(350 89% 60% / 0.15)",
-  },
-];
-
 export function KPIGrid() {
+  const snapshot = useQuery(api.queries.analytics.kpiSnapshot, { period: "month" });
+
+  const revenueAmount = snapshot?.totalRevenue?.amount ?? 0;
+  const totalOrders = snapshot?.totalOrders ?? 0;
+  const stockAlerts = snapshot?.stockAlerts ?? 0;
+  const newCustomers = snapshot?.newCustomers ?? 0;
+
+  const kpis: KPICardProps[] = [
+    {
+      label: "Revenus ce mois",
+      value: `${revenueAmount.toLocaleString("fr-FR")} FCFA`,
+      delta: snapshot?.revenueDelta ?? 0,
+      icon: DollarSign,
+      iconColor: "hsl(43, 80%, 42%)",
+      iconBg: "hsl(43 80% 42% / 0.15)",
+    },
+    {
+      label: "Commandes",
+      value: String(totalOrders),
+      delta: snapshot?.ordersDelta ?? 0,
+      icon: ShoppingBag,
+      iconColor: "hsl(210, 100%, 60%)",
+      iconBg: "hsl(210 100% 60% / 0.15)",
+    },
+    {
+      label: "Nouveaux clients",
+      value: String(newCustomers),
+      delta: snapshot?.customersDelta ?? 0,
+      icon: Users,
+      iconColor: "hsl(270, 80%, 65%)",
+      iconBg: "hsl(270 80% 65% / 0.15)",
+    },
+    {
+      label: "Alertes stock",
+      value: String(stockAlerts),
+      delta: 0,
+      icon: Package,
+      iconColor: "hsl(350, 89%, 60%)",
+      iconBg: "hsl(350 89% 60% / 0.15)",
+    },
+  ];
+
   return (
     <div
       style={{
@@ -121,7 +129,7 @@ export function KPIGrid() {
         gap: "1.25rem",
       }}
     >
-      {KPI_DATA.map((kpi, i) => (
+      {kpis.map((kpi, i) => (
         <KPICard key={kpi.label} {...kpi} delay={i * 60} />
       ))}
     </div>
