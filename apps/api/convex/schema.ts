@@ -22,6 +22,8 @@ export default defineSchema({
     isActive: v.boolean(),
     lastLoginAt: v.optional(v.number()),
     tokenIdentifier: v.optional(v.string()),
+    password: v.optional(v.string()),
+    passwordHash: v.optional(v.string()),
   })
     .index("by_email", ["email"])
     .index("by_token", ["tokenIdentifier"]),
@@ -150,7 +152,7 @@ export default defineSchema({
     paymentMethod: v.optional(v.string()),
     lines: v.array(
       v.object({
-        productId: v.id("products"),
+        productId: v.optional(v.id("products")),
         sku: v.string(),
         name: v.string(),
         quantity: v.number(),
@@ -164,6 +166,7 @@ export default defineSchema({
             frameStyle: v.optional(v.string()),
             passepartout: v.optional(v.boolean()),
             imageUrl: v.optional(v.string()),
+            storageId: v.optional(v.id("_storage")),
           })
         ),
       })

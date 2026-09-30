@@ -1,5 +1,5 @@
 import { Sidebar } from "@/components/layout/Sidebar";
-import { ConvexClientProvider } from "@/lib/ConvexClientProvider";
+import { AuthGuard } from "@/components/layout/AuthGuard";
 
 export default function ProtectedLayout({
   children,
@@ -7,7 +7,7 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ConvexClientProvider>
+    <AuthGuard>
       <div style={{ display: "flex", minHeight: "100dvh" }}>
         <Sidebar />
         <main
@@ -23,6 +23,6 @@ export default function ProtectedLayout({
           {children}
         </main>
       </div>
-    </ConvexClientProvider>
+    </AuthGuard>
   );
 }

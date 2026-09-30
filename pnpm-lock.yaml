@@ -130,6 +130,9 @@ importers:
       canvas-confetti:
         specifier: ^1.9.4
         version: 1.9.4
+      convex:
+        specifier: ^1.46.0
+        version: 1.46.0(react@19.2.8)
       lucide-react:
         specifier: ^1.47.0
         version: 1.48.0(react@19.2.8)

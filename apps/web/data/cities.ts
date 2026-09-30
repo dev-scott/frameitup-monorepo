@@ -1,0 +1,80 @@
+import type { CityOption } from '@/types/frame';
+
+export const DELIVERY_CITIES: CityOption[] = [
+  {
+    id: 'abidjan',
+    name: 'Abidjan',
+    country: 'Côte d\'Ivoire',
+    quartiers: [
+      'Plateau', 'Cocody', 'Marcory', 'Treichville', 'Adjamé',
+      'Yopougon', 'Abobo', 'Port-Bouët', 'Bingerville', 'Koumassi',
+      'Attécoubé', 'Songon',
+    ],
+    deliveryStandard: 2000,
+    deliveryExpress: 4000,
+    daysStandard: 3,
+    daysExpress: 1,
+  },
+  {
+    id: 'bouake',
+    name: 'Bouaké',
+    country: 'Côte d\'Ivoire',
+    quartiers: ['Commerce', 'Koko', 'Air France', 'Sokoura', 'Belleville'],
+    deliveryStandard: 5000,
+    deliveryExpress: 10000,
+    daysStandard: 5,
+    daysExpress: 2,
+  },
+  {
+    id: 'dakar',
+    name: 'Dakar',
+    country: 'Sénégal',
+    quartiers: [
+      'Plateau', 'Médina', 'Fann', 'Point E', 'Almadies',
+      'Ngor', 'Yoff', 'Parcelles Assainies', 'Guédiawaye',
+    ],
+    deliveryStandard: 5000,
+    deliveryExpress: 10000,
+    daysStandard: 5,
+    daysExpress: 2,
+  },
+  {
+    id: 'douala',
+    name: 'Douala',
+    country: 'Cameroun',
+    quartiers: [
+      'Bonanjo', 'Akwa', 'Deido', 'Bali', 'Bonapriso',
+      'Makepe', 'Kotto', 'Logbaba', 'New Bell',
+    ],
+    deliveryStandard: 5000,
+    deliveryExpress: 10000,
+    daysStandard: 5,
+    daysExpress: 2,
+  },
+  {
+    id: 'bamako',
+    name: 'Bamako',
+    country: 'Mali',
+    quartiers: [
+      'Hippodrome', 'Quinzambougou', 'Badalabougou', 'ACI 2000',
+      'Magnambougou', 'Kalaban Coura', 'Sogoniko',
+    ],
+    deliveryStandard: 5000,
+    deliveryExpress: 12000,
+    daysStandard: 6,
+    daysExpress: 3,
+  },
+  {
+    id: 'ouagadougou',
+    name: 'Ouagadougou',
+    country: 'Burkina Faso',
+    quartiers: [
+      'Zogona', 'Ouaga 2000', 'Pissy', 'Gounghin', 'Karpala',
+      'Tampouy', 'Nonghin',
+    ],
+    deliveryStandard: 5000,
+    deliveryExpress: 12000,
+    daysStandard: 6,
+    daysExpress: 3,
+  },
+];

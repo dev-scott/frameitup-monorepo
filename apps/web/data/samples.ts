@@ -1,0 +1,58 @@
+import type { SampleArtwork } from '@/types/frame';
+
+export const SAMPLE_ARTWORKS: SampleArtwork[] = [
+  {
+    id: 'abstract-gold',
+    title: 'Harmonie Dorée',
+    artist: 'Collection Studio',
+    style: 'Art Abstrait',
+    imageUrl: 'https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=800&q=90',
+    recommendedFormat: 'A3',
+    recommendedMouldure: 'dore-antique',
+  },
+  {
+    id: 'sunset-africa',
+    title: 'Coucher de Sahel',
+    artist: 'Collection Studio',
+    style: 'Photographie',
+    imageUrl: 'https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?w=800&q=90',
+    recommendedFormat: 'A3',
+    recommendedMouldure: 'acajou-rouge',
+  },
+  {
+    id: 'botanical',
+    title: 'Botanique Tropicale',
+    artist: 'Collection Studio',
+    style: 'Illustration',
+    imageUrl: 'https://images.unsplash.com/photo-1490750967868-88df5691cc06?w=800&q=90',
+    recommendedFormat: 'A4',
+    recommendedMouldure: 'chene-naturel',
+  },
+  {
+    id: 'portrait-art',
+    title: 'Portrait Contemporain',
+    artist: 'Collection Studio',
+    style: 'Portrait',
+    imageUrl: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=800&q=90',
+    recommendedFormat: 'A4',
+    recommendedMouldure: 'laque-noir',
+  },
+  {
+    id: 'architecture',
+    title: 'Lignes Urbaines',
+    artist: 'Collection Studio',
+    style: 'Architecture',
+    imageUrl: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&q=90',
+    recommendedFormat: 'A2',
+    recommendedMouldure: 'argent-brosse',
+  },
+  {
+    id: 'nature-water',
+    title: 'Cascade de Lumière',
+    artist: 'Collection Studio',
+    style: 'Nature',
+    imageUrl: 'https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=800&q=90',
+    recommendedFormat: 'A3',
+    recommendedMouldure: 'wenge-africain',
+  },
+];

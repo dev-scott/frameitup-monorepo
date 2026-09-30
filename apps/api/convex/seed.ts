@@ -370,3 +370,217 @@ export const seedInitialData = mutation({
     return { success: true, message: "Données initiales Convex injectées avec succès !" };
   },
 });
+
+export const seedBoutiqueProducts = mutation({
+  args: {},
+  handler: async (ctx) => {
+    // 1. Assurer la présence du compte administrateur
+    const admin = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", "admin@frameitup.com"))
+      .first();
+
+    if (!admin) {
+      await ctx.db.insert("users", {
+        email: "admin@frameitup.com",
+        firstName: "Directeur",
+        lastName: "FrameItUp",
+        role: "super_admin",
+        isActive: true,
+        password: "admin",
+        lastLoginAt: Date.now(),
+      });
+    }
+
+    // 2. Œuvres d'art de la boutique avec images HD
+    const artworks = [
+      {
+        sku: "ART-HARMONIE-DOREE",
+        slug: "harmonie-doree-a3",
+        name: "Harmonie Dorée",
+        category: "tableau" as const,
+        description: "Explosion de couleurs chaudes sur fond ivoire. Moulure chêne naturel huilé, passe-partout blanc cœur.",
+        priceAmount: 42000,
+        priceCurrency: "XOF",
+        status: "active" as const,
+        isFeatured: true,
+        images: [{
+          url: "https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=800&q=90",
+          alt: "Harmonie Dorée",
+          width: 800,
+          height: 800,
+          isPrimary: true,
+        }],
+        attributes: [
+          { key: "artist", value: "Collection FrameItUp" },
+          { key: "style", value: "Art Abstrait" },
+          { key: "dimensions", value: "30 × 40 cm" },
+          { key: "mouldure", value: "Chêne naturel huilé 22mm" },
+          { key: "passepartout", value: "Blanc cœur 30mm" },
+          { key: "protection", value: "Verre antireflet minéral" },
+        ],
+        tags: ["Art Abstrait", "Bestseller"],
+      },
+      {
+        sku: "ART-SAHEL-SUNSET",
+        slug: "sahel-sunset",
+        name: "Coucher de Sahel",
+        category: "tableau" as const,
+        description: "La lumière rasante du crépuscule sur la savane. Tirage fine art 250g, couleurs profondes et lumineuses.",
+        priceAmount: 58000,
+        priceCurrency: "XOF",
+        status: "active" as const,
+        isFeatured: true,
+        images: [{
+          url: "https://images.unsplash.com/photo-1504701954957-2010ec3bcec1?w=800&q=90",
+          alt: "Coucher de Sahel",
+          width: 800,
+          height: 800,
+          isPrimary: true,
+        }],
+        attributes: [
+          { key: "artist", value: "Collection FrameItUp" },
+          { key: "style", value: "Photographie" },
+          { key: "dimensions", value: "40 × 60 cm" },
+          { key: "mouldure", value: "Acajou rouge poli 18mm" },
+          { key: "passepartout", value: "Sans passe-partout" },
+          { key: "protection", value: "Plexiglas poli au diamant" },
+        ],
+        tags: ["Photographie", "Nouveau"],
+      },
+      {
+        sku: "ART-BOTANIQUE-TROP",
+        slug: "botanique-tropicale",
+        name: "Botanique Tropicale",
+        category: "tableau" as const,
+        description: "Illustration botanique inspirée des flores d'Afrique équatoriale. Rendu détaillé et texturé.",
+        priceAmount: 38000,
+        priceCurrency: "XOF",
+        status: "active" as const,
+        isFeatured: false,
+        images: [{
+          url: "https://images.unsplash.com/photo-1490750967868-88df5691cc06?w=800&q=90",
+          alt: "Botanique Tropicale",
+          width: 800,
+          height: 800,
+          isPrimary: true,
+        }],
+        attributes: [
+          { key: "artist", value: "Collection FrameItUp" },
+          { key: "style", value: "Botanique" },
+          { key: "dimensions", value: "30 × 40 cm" },
+          { key: "mouldure", value: "Chêne naturel huilé 22mm" },
+          { key: "passepartout", value: "Ivoire 25mm" },
+          { key: "protection", value: "Verre antireflet minéral" },
+        ],
+        tags: ["Botanique", "Plantes"],
+      },
+      {
+        sku: "ART-PORTRAIT-CONTEMP",
+        slug: "portrait-contemporain",
+        name: "Portrait Contemporain",
+        category: "tableau" as const,
+        description: "Étude de lumière en noir et blanc. La moulure laquée noire sublime la profondeur du regard.",
+        priceAmount: 52000,
+        priceCurrency: "XOF",
+        status: "active" as const,
+        isFeatured: false,
+        images: [{
+          url: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=800&q=90",
+          alt: "Portrait Contemporain",
+          width: 800,
+          height: 800,
+          isPrimary: true,
+        }],
+        attributes: [
+          { key: "artist", value: "Collection FrameItUp" },
+          { key: "style", value: "Portrait" },
+          { key: "dimensions", value: "40 × 50 cm" },
+          { key: "mouldure", value: "Laque noire mate 20mm" },
+          { key: "passepartout", value: "Blanc cœur 30mm" },
+          { key: "protection", value: "Verre antireflet minéral" },
+        ],
+        tags: ["Portrait", "Noir et Blanc"],
+      },
+      {
+        sku: "ART-LIGNES-URBAINES",
+        slug: "lignes-urbaines",
+        name: "Lignes Urbaines",
+        category: "tableau" as const,
+        description: "La géométrie de la ville moderne capturée à l'heure bleue. Cadre aluminium brossé discret.",
+        priceAmount: 74000,
+        priceCurrency: "XOF",
+        status: "active" as const,
+        isFeatured: true,
+        images: [{
+          url: "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&q=90",
+          alt: "Lignes Urbaines",
+          width: 800,
+          height: 800,
+          isPrimary: true,
+        }],
+        attributes: [
+          { key: "artist", value: "Collection FrameItUp" },
+          { key: "style", value: "Architecture" },
+          { key: "dimensions", value: "50 × 70 cm" },
+          { key: "mouldure", value: "Aluminium argent brossé 15mm" },
+          { key: "passepartout", value: "Sans passe-partout" },
+          { key: "protection", value: "Plexiglas poli au diamant" },
+        ],
+        tags: ["Architecture", "Grand format"],
+      },
+      {
+        sku: "ART-CASCADE-LUMIERE",
+        slug: "cascade-lumiere",
+        name: "Cascade de Lumière",
+        category: "tableau" as const,
+        description: "La puissance apaisante de l'eau en longue exposition. Rendu soyeux sur papier Hahnemühle 250g.",
+        priceAmount: 62000,
+        priceCurrency: "XOF",
+        status: "active" as const,
+        isFeatured: false,
+        images: [{
+          url: "https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=800&q=90",
+          alt: "Cascade de Lumière",
+          width: 800,
+          height: 800,
+          isPrimary: true,
+        }],
+        attributes: [
+          { key: "artist", value: "Collection FrameItUp" },
+          { key: "style", value: "Paysage" },
+          { key: "dimensions", value: "40 × 60 cm" },
+          { key: "mouldure", value: "Wengé africain 25mm" },
+          { key: "passepartout", value: "Lin naturel 20mm" },
+          { key: "protection", value: "Verre antireflet minéral" },
+        ],
+        tags: ["Paysage", "Nature"],
+      },
+    ];
+
+    let inserted = 0;
+    for (const art of artworks) {
+      const existing = await ctx.db
+        .query("products")
+        .withIndex("by_slug", (q) => q.eq("slug", art.slug))
+        .first();
+
+      if (!existing) {
+        const prodId = await ctx.db.insert("products", art);
+        await ctx.db.insert("stock", {
+          productId: prodId,
+          sku: art.sku,
+          quantity: 12,
+          reservedQuantity: 0,
+          reorderPoint: 3,
+          reorderQuantity: 10,
+          location: "Atelier Central - Rayon B",
+        });
+        inserted++;
+      }
+    }
+
+    return { success: true, insertedCount: inserted };
+  },
+});
+

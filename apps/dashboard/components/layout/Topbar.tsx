@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Bell, Search, X, LayoutDashboard, ShoppingBag, Package, TrendingUp, Users, Layers } from "lucide-react";
+import { Bell, Search, X, LayoutDashboard, ShoppingBag, Package, TrendingUp, Users, Layers, LogOut } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/lib/AuthContext";
 
 interface TopbarProps {
   title: string;
@@ -19,6 +20,7 @@ const SEARCH_ITEMS = [
 ];
 
 export function Topbar({ title, subtitle }: TopbarProps) {
+  const { user, logout } = useAuth();
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -102,12 +104,45 @@ export function Topbar({ title, subtitle }: TopbarProps) {
             <span style={{ position: "absolute", top: 8, right: 8, width: 8, height: 8, borderRadius: "50%", background: "var(--danger)", border: "2px solid var(--surface-900)" }} />
           </button>
 
-          {/* Avatar */}
-          <div
-            style={{ width: 40, height: 40, borderRadius: 10, background: "linear-gradient(135deg, var(--brand-500) 0%, var(--brand-700) 100%)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.875rem", fontWeight: 700, cursor: "pointer", border: "1px solid hsl(43 80% 42% / 0.3)", color: "white" }}
-            title="Admin FrameItUp"
-          >
-            AD
+          {/* Admin User Info & Logout */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: 6 }}>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: "0.8125rem", fontWeight: 600, color: "white" }}>
+                {user ? `${user.firstName} ${user.lastName}` : "Directeur"}
+              </div>
+              <div style={{ fontSize: "0.6875rem", color: "var(--brand-300)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                {user?.role === "super_admin" ? "Super Admin" : "Administrateur"}
+              </div>
+            </div>
+
+            <div
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 10,
+                background: "linear-gradient(135deg, var(--brand-500) 0%, var(--brand-700) 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "0.8125rem",
+                fontWeight: 700,
+                border: "1px solid hsl(43 80% 42% / 0.3)",
+                color: "white",
+              }}
+              title={user?.email || "admin@frameitup.com"}
+            >
+              {(user?.firstName?.[0] || "A") + (user?.lastName?.[0] || "D")}
+            </div>
+
+            <button
+              type="button"
+              onClick={logout}
+              className="btn-ghost"
+              style={{ width: 36, height: 36, padding: 0, justifyContent: "center", color: "var(--danger)" }}
+              title="Se déconnecter"
+            >
+              <LogOut size={16} />
+            </button>
           </div>
         </div>
       </header>

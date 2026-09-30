@@ -30,6 +30,7 @@ export const metadata: Metadata = {
 };
 
 import { ConvexClientProvider } from "@/lib/ConvexClientProvider";
+import { AuthProvider } from "@/lib/AuthContext";
 
 export default function RootLayout({
   children,
@@ -43,7 +44,9 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body style={{ background: "var(--surface-950)", color: "white" }}>
-        <ConvexClientProvider>{children}</ConvexClientProvider>
+        <ConvexClientProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ConvexClientProvider>
       </body>
     </html>
   );
