@@ -1,0 +1,5 @@
+{
+  "buildCommand": "cd ../.. && pnpm exec nx build dashboard --prod",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "framework": "nextjs"
+}
