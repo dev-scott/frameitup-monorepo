@@ -2,6 +2,7 @@
   "name": "@frameitup/dashboard",
   "version": "0.0.1",
   "private": true,
+  "packageManager": "pnpm@9.15.4",
   "description": "FrameItUp — Dashboard d'administration (stock, commandes, finances)",
   "scripts": {
     "dev": "next dev --port 3001",
