@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd ../.. && pnpm exec nx build web --prod",
-  "installCommand": "pnpm install --frozen-lockfile",
-  "framework": "nextjs"
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "corepack enable && pnpm install --no-frozen-lockfile",
+  "ignoreCommand": "npx nx-ignore @frameitup/web"
 }
