@@ -22,11 +22,40 @@ export default defineSchema({
     isActive: v.boolean(),
     lastLoginAt: v.optional(v.number()),
     tokenIdentifier: v.optional(v.string()),
+    /** @deprecated ancien stockage en clair — migré automatiquement vers passwordHash */
     password: v.optional(v.string()),
     passwordHash: v.optional(v.string()),
+    failedLoginAttempts: v.optional(v.number()),
+    lockedUntil: v.optional(v.number()),
+    passwordChangedAt: v.optional(v.number()),
   })
     .index("by_email", ["email"])
     .index("by_token", ["tokenIdentifier"]),
+
+  // ─── Sessions (jeton opaque, seul le hash est stocké) ───────────────────────
+  sessions: defineTable({
+    userId: v.id("users"),
+    tokenHash: v.string(),
+    expiresAt: v.number(),
+    lastSeenAt: v.number(),
+    userAgent: v.optional(v.string()),
+  })
+    .index("by_token_hash", ["tokenHash"])
+    .index("by_user", ["userId"]),
+
+  // ─── Journal d'audit ───────────────────────────────────────────────────────
+  auditLogs: defineTable({
+    userId: v.optional(v.id("users")),
+    userEmail: v.optional(v.string()),
+    userName: v.optional(v.string()),
+    action: v.string(),
+    entity: v.string(),
+    entityId: v.optional(v.string()),
+    summary: v.string(),
+    metadata: v.optional(v.any()),
+  })
+    .index("by_entity", ["entity"])
+    .index("by_user", ["userId"]),
 
   // ─── Produits ──────────────────────────────────────────────────────────────
   products: defineTable({
