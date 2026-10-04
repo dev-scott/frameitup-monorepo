@@ -1,18 +1,25 @@
 import { query } from "../_generated/server";
 import { v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
+import { requirePermission } from "../lib/auth";
 
 /**
  * Queries Convex — Produits
+ * Supporte à la fois les appels publics (boutique vitrine)
+ * et les appels authentifiés (dashboard avec sessionToken et RBAC).
  */
 
 export const list = query({
   args: {
+    sessionToken: v.optional(v.string()),
     category: v.optional(v.string()),
     status: v.optional(v.string()),
     paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, args) => {
+    if (args.sessionToken) {
+      await requirePermission(ctx, args.sessionToken, "dashboard.read");
+    }
     if (args.status) {
       return await ctx.db
         .query("products")
@@ -31,10 +38,14 @@ export const list = query({
 
 export const listAll = query({
   args: {
+    sessionToken: v.optional(v.string()),
     category: v.optional(v.string()),
     status: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    if (args.sessionToken) {
+      await requirePermission(ctx, args.sessionToken, "dashboard.read");
+    }
     if (args.status && args.status !== "all") {
       return await ctx.db
         .query("products")
@@ -54,7 +65,10 @@ export const listAll = query({
 });
 
 export const getBySlug = query({
-  args: { slug: v.string() },
+  args: {
+    sessionToken: v.optional(v.string()),
+    slug: v.string(),
+  },
   handler: async (ctx, args) => {
     return await ctx.db
       .query("products")
@@ -64,7 +78,10 @@ export const getBySlug = query({
 });
 
 export const getBySku = query({
-  args: { sku: v.string() },
+  args: {
+    sessionToken: v.optional(v.string()),
+    sku: v.string(),
+  },
   handler: async (ctx, args) => {
     return await ctx.db
       .query("products")
@@ -74,7 +91,10 @@ export const getBySku = query({
 });
 
 export const search = query({
-  args: { query: v.string() },
+  args: {
+    sessionToken: v.optional(v.string()),
+    query: v.string(),
+  },
   handler: async (ctx, args) => {
     return await ctx.db
       .query("products")
