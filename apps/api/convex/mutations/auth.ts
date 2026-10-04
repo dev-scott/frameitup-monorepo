@@ -260,6 +260,66 @@ export const bootstrapAccount = internalMutation({
   },
 });
 
+/**
+ * Initialisation publique du premier compte (bootstrap UI)
+ * Autorisée uniquement si aucun super_admin n'existe encore.
+ */
+export const setupAdmin = mutation({
+  args: {
+    email: v.string(),
+    password: v.string(),
+    firstName: v.string(),
+    lastName: v.string(),
+    role: v.union(
+      v.literal("super_admin"),
+      v.literal("admin"),
+      v.literal("manager"),
+      v.literal("stock"),
+      v.literal("viewer")
+    ),
+  },
+  handler: async (ctx, args) => {
+    validatePasswordStrength(args.password);
+    const email = args.email.trim().toLowerCase();
+
+    // Si un super_admin existe déjà, bloquer la création publique
+    const existing = await ctx.db
+      .query("users")
+      .collect();
+    const hasOwner = existing.some((u) => u.role === "super_admin" && u.isActive);
+    if (hasOwner) {
+      throw new ConvexError({
+        code: "FORBIDDEN",
+        message: "Un propriétaire existe déjà. Utilisez l'interface de gestion des utilisateurs.",
+      });
+    }
+
+    const dup = existing.find((u) => u.email === email);
+    const data = {
+      firstName: args.firstName.trim(),
+      lastName: args.lastName.trim(),
+      role: args.role,
+      isActive: true,
+      passwordHash: hashPassword(args.password),
+      password: undefined,
+      failedLoginAttempts: 0,
+      passwordChangedAt: Date.now(),
+    };
+    if (dup) {
+      await ctx.db.patch(dup._id, data);
+      return { userId: dup._id };
+    }
+    const userId = await ctx.db.insert("users", { email, ...data });
+    await logAudit(ctx, {
+      action: "user.create",
+      entity: "user",
+      entityId: userId,
+      summary: `Premier compte propriétaire créé : ${email}`,
+    });
+    return { userId };
+  },
+});
+
 /** Purge des sessions expirées (appelée par le cron) */
 export const purgeExpiredSessions = internalMutation({
   args: {},

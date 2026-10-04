@@ -5,14 +5,17 @@ import { Topbar } from "@/components/layout/Topbar";
 import { Star, Search } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "@/lib/convex";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function CustomersPage() {
   const [search, setSearch] = useState("");
   const [vipFilter, setVipFilter] = useState<string>("all");
+  const { token } = useAuth();
 
-  const customers = useQuery(api.queries.customers.listAll, {
-    isVip: vipFilter === "vip" ? true : undefined,
-  });
+  const customers = useQuery(
+    api.queries.customers.listAll,
+    token ? { sessionToken: token, isVip: vipFilter === "vip" ? true : undefined } : "skip"
+  );
 
   const filteredCustomers = customers?.filter((c: any) => {
     if (!search.trim()) return true;

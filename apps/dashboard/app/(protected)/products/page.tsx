@@ -5,6 +5,7 @@ import { Topbar } from "@/components/layout/Topbar";
 import { Plus, Edit, Eye, Search } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "@/lib/convex";
+import { useAuth } from "@/lib/AuthContext";
 
 const STATUS_COLORS: Record<string, string> = {
   active: "var(--success)",
@@ -21,12 +22,17 @@ const STATUS_LABELS: Record<string, string> = {
 export default function ProductsPage() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
+  const { token } = useAuth();
 
-  const products = useQuery(api.queries.products.listAll, {
-    category: category === "all" ? undefined : category,
-  });
+  const products = useQuery(
+    api.queries.products.listAll,
+    token ? { sessionToken: token, category: category === "all" ? undefined : category } : "skip"
+  );
 
-  const stockList = useQuery(api.queries.stock.listAll);
+  const stockList = useQuery(
+    api.queries.stock.listAll,
+    token ? { sessionToken: token } : "skip"
+  );
 
   // Carte de stock par ID de produit
   const stockByProductId = new Map<string, number>();

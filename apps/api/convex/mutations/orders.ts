@@ -1,12 +1,51 @@
 import { mutation } from "../_generated/server";
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
+import type { Doc } from "../_generated/dataModel";
+import type { MutationCtx } from "../_generated/server";
+import { requirePermission, logAudit } from "../lib/auth";
 
 /**
  * Mutations Convex — Commandes
+ *
+ * `create` reste publique (tunnel de commande du site vitrine).
+ * Toutes les autres actions exigent la permission `orders.write`.
  */
+
+const STATUS_LABELS: Record<string, string> = {
+  pending: "En attente",
+  confirmed: "Confirmée",
+  processing: "En fabrication",
+  ready: "Prête",
+  shipped: "Expédiée",
+  delivered: "Livrée",
+  cancelled: "Annulée",
+  refunded: "Remboursée",
+};
+
+async function recordIncome(ctx: MutationCtx, order: Doc<"orders">) {
+  const existingTx = await ctx.db
+    .query("transactions")
+    .withIndex("by_order", (q) => q.eq("orderId", order._id))
+    .first();
+  if (existingTx) return;
+  await ctx.db.insert("transactions", {
+    type: "income",
+    category: "ventes",
+    amount: order.totalAmount,
+    currency: order.currency || "XOF",
+    description: `Vente commande ${order.orderNumber}`,
+    orderId: order._id,
+    reference: order.orderNumber,
+    transactionDate: Date.now(),
+    paymentMethod: order.paymentMethod || "especes",
+    isRecurring: false,
+    tags: ["Vente"],
+  });
+}
 
 export const updateStatus = mutation({
   args: {
+    sessionToken: v.string(),
     orderNumber: v.string(),
     status: v.union(
       v.literal("pending"),
@@ -17,54 +56,121 @@ export const updateStatus = mutation({
       v.literal("delivered"),
       v.literal("cancelled")
     ),
+    note: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const { user } = await requirePermission(ctx, args.sessionToken, "orders.write");
     const order = await ctx.db
       .query("orders")
       .withIndex("by_number", (q) => q.eq("orderNumber", args.orderNumber))
       .first();
+    if (!order) throw new ConvexError({ code: "NOT_FOUND", message: `Commande introuvable : ${args.orderNumber}` });
+    if (order.status === args.status) return { success: true, orderNumber: order.orderNumber, status: order.status };
 
-    if (!order) {
-      throw new Error(`Commande introuvable: ${args.orderNumber}`);
+    const updates: Partial<Doc<"orders">> = { status: args.status };
+    const now = Date.now();
+    if (args.status === "delivered") {
+      updates.fulfilledAt = now;
+      if (order.paymentStatus !== "paid") updates.paymentStatus = "paid";
     }
-
-    const updates: any = {
-      status: args.status,
-    };
-
-    // Si livrée ou confirmée avec paiement, marquer payée
-    if (args.status === "delivered" && order.paymentStatus !== "paid") {
-      updates.paymentStatus = "paid";
+    if (args.status === "cancelled") {
+      updates.cancelledAt = now;
+      if (args.note) updates.cancelReason = args.note;
     }
-
     await ctx.db.patch(order._id, updates);
 
-    // Si la commande est livrée ou payée, enregistrer une transaction financière
-    const isNowPaidOrDelivered = args.status === "delivered" || updates.paymentStatus === "paid" || order.paymentStatus === "paid";
-    if (isNowPaidOrDelivered && args.status !== "cancelled") {
-      const existingTx = await ctx.db
-        .query("transactions")
-        .withIndex("by_order", (q) => q.eq("orderId", order._id))
-        .first();
+    await ctx.db.insert("orderEvents", {
+      orderId: order._id,
+      fromStatus: order.status,
+      toStatus: args.status,
+      notes: args.note,
+      performedBy: user._id,
+    });
 
-      if (!existingTx) {
-        await ctx.db.insert("transactions", {
-          type: "income",
-          category: "ventes",
-          amount: order.totalAmount,
-          currency: order.currency || "XOF",
-          description: `Vente commande ${order.orderNumber}`,
-          orderId: order._id,
-          reference: order.orderNumber,
-          transactionDate: Date.now(),
-          paymentMethod: order.paymentMethod || "especes",
-          isRecurring: false,
-          tags: ["Vente", "Commande Web"],
-        });
-      }
-    }
+    const paid = updates.paymentStatus === "paid" || order.paymentStatus === "paid";
+    if (paid && args.status !== "cancelled") await recordIncome(ctx, { ...order, ...updates } as Doc<"orders">);
 
+    await logAudit(ctx, {
+      user,
+      action: "order.status",
+      entity: "order",
+      entityId: order._id,
+      summary: `${order.orderNumber} : ${STATUS_LABELS[order.status]} → ${STATUS_LABELS[args.status]}`,
+    });
     return { success: true, orderNumber: args.orderNumber, status: args.status };
+  },
+});
+
+export const markPaid = mutation({
+  args: { sessionToken: v.string(), orderId: v.id("orders"), paymentMethod: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const { user } = await requirePermission(ctx, args.sessionToken, "orders.write");
+    const order = await ctx.db.get(args.orderId);
+    if (!order) throw new ConvexError({ code: "NOT_FOUND", message: "Commande introuvable." });
+    if (order.paymentStatus === "paid") return { success: true };
+    const paymentMethod = args.paymentMethod || order.paymentMethod;
+    await ctx.db.patch(order._id, { paymentStatus: "paid", paymentMethod });
+    await recordIncome(ctx, { ...order, paymentStatus: "paid", paymentMethod });
+    await ctx.db.insert("orderEvents", {
+      orderId: order._id,
+      fromStatus: order.status,
+      toStatus: order.status,
+      notes: `Paiement encaissé${paymentMethod ? ` (${paymentMethod})` : ""}`,
+      performedBy: user._id,
+    });
+    await logAudit(ctx, {
+      user,
+      action: "order.paid",
+      entity: "order",
+      entityId: order._id,
+      summary: `${order.orderNumber} marquée comme payée — ${order.totalAmount.toLocaleString("fr-FR")} FCFA`,
+    });
+    return { success: true };
+  },
+});
+
+export const updateFulfillment = mutation({
+  args: {
+    sessionToken: v.string(),
+    orderId: v.id("orders"),
+    trackingNumber: v.optional(v.string()),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { user } = await requirePermission(ctx, args.sessionToken, "orders.write");
+    const order = await ctx.db.get(args.orderId);
+    if (!order) throw new ConvexError({ code: "NOT_FOUND", message: "Commande introuvable." });
+    await ctx.db.patch(order._id, {
+      trackingNumber: args.trackingNumber?.trim() || undefined,
+      notes: args.notes?.trim() || undefined,
+    });
+    await logAudit(ctx, {
+      user,
+      action: "order.update",
+      entity: "order",
+      entityId: order._id,
+      summary: `${order.orderNumber} : suivi / notes mis à jour`,
+    });
+    return { success: true };
+  },
+});
+
+export const addNote = mutation({
+  args: { sessionToken: v.string(), orderId: v.id("orders"), note: v.string() },
+  handler: async (ctx, args) => {
+    const { user } = await requirePermission(ctx, args.sessionToken, "orders.write");
+    const order = await ctx.db.get(args.orderId);
+    if (!order) throw new ConvexError({ code: "NOT_FOUND", message: "Commande introuvable." });
+    const note = args.note.trim();
+    if (!note) throw new ConvexError({ code: "INVALID", message: "La note est vide." });
+    await ctx.db.insert("orderEvents", {
+      orderId: order._id,
+      fromStatus: order.status,
+      toStatus: order.status,
+      notes: note.slice(0, 1000),
+      performedBy: user._id,
+    });
+    return { success: true };
   },
 });
 
@@ -193,6 +299,12 @@ export const create = mutation({
       currency: args.currency,
       shippingAddress: args.shippingAddress,
       notes: args.notes,
+    });
+
+    await ctx.db.insert("orderEvents", {
+      orderId,
+      toStatus: "pending",
+      notes: "Commande passée sur le site",
     });
 
     if (args.paymentStatus === "paid") {

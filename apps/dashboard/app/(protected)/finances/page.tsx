@@ -5,6 +5,7 @@ import { Topbar } from "@/components/layout/Topbar";
 import { TrendingUp, TrendingDown, ArrowUpRight, Search } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "@/lib/convex";
+import { useAuth } from "@/lib/AuthContext";
 
 function formatDate(timestamp: number) {
   return new Date(timestamp).toLocaleDateString("fr-FR", {
@@ -19,9 +20,16 @@ function formatDate(timestamp: number) {
 export default function FinancesPage() {
   const [filterType, setFilterType] = useState<string>("all");
   const [search, setSearch] = useState("");
+  const { token } = useAuth();
 
-  const transactions = useQuery(api.queries.finances.listAll, { limit: 50 });
-  const summary = useQuery(api.queries.finances.summary);
+  const transactions = useQuery(
+    api.queries.finances.listAll,
+    token ? { sessionToken: token, limit: 50 } : "skip"
+  );
+  const summary = useQuery(
+    api.queries.finances.summary,
+    token ? { sessionToken: token } : "skip"
+  );
 
   const totalIncome = summary?.totalIncome ?? 0;
   const totalExpense = summary?.totalExpense ?? 0;

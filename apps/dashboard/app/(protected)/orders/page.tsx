@@ -5,6 +5,7 @@ import { Topbar } from "@/components/layout/Topbar";
 import { Search, ExternalLink, Download, X, Eye, Package, User, MapPin, Phone, Mail, Image as ImageIcon } from "lucide-react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/lib/convex";
+import { useAuth } from "@/lib/AuthContext";
 
 const STATUS_CONFIG = {
   pending:    { label: "En attente",     cls: "badge badge-pending" },
@@ -31,9 +32,16 @@ export default function OrdersPage() {
   const [search, setSearch] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [activeOrder, setActiveOrder] = useState<any | null>(null);
+  const { token } = useAuth();
 
-  const orders = useQuery(api.queries.orders.listAll, { status: selectedStatus });
-  const stats = useQuery(api.queries.orders.stats);
+  const orders = useQuery(
+    api.queries.orders.listAll,
+    token ? { sessionToken: token, status: selectedStatus } : "skip"
+  );
+  const stats = useQuery(
+    api.queries.orders.stats,
+    token ? { sessionToken: token } : "skip"
+  );
   const updateStatus = useMutation(api.mutations.orders.updateStatus);
 
   const filteredOrders = orders?.filter((order: any) => {

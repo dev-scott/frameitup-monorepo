@@ -4,9 +4,14 @@ import { AlertTriangle, AlertCircle, ChevronRight, CheckCircle2 } from "lucide-r
 import Link from "next/link";
 import { useQuery } from "convex/react";
 import { api } from "@/lib/convex";
+import { useAuth } from "@/lib/AuthContext";
 
 export function StockAlerts() {
-  const alerts = useQuery(api.queries.stock.alerts);
+  const { token } = useAuth();
+  const alerts = useQuery(
+    api.queries.stock.alerts,
+    token ? { sessionToken: token } : "skip"
+  );
 
   const critical = alerts?.filter((a: any) => a.severity === "critical") ?? [];
   const warnings = alerts?.filter((a: any) => a.severity === "warning") ?? [];

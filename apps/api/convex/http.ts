@@ -63,7 +63,8 @@ const GRAPHIQL_HTML = `<!DOCTYPE html>
 async function executeGraphQL(
   ctx: any,
   queryStr: string,
-  variables: Record<string, any> = {}
+  variables: Record<string, any> = {},
+  sessionToken = ""
 ): Promise<{ data?: Record<string, any>; errors?: Array<{ message: string }> }> {
   const clean = queryStr.replace(/#.*$/gm, "").trim();
   const data: Record<string, any> = {};
@@ -129,7 +130,7 @@ async function executeGraphQL(
     if (/recentOrders\b/.test(clean)) {
       const limitMatch = clean.match(/limit\s*:\s*(\d+)/);
       const limit = limitMatch ? parseInt(limitMatch[1] ?? "10", 10) : (variables.limit ?? 10);
-      data["recentOrders"] = await ctx.runQuery(api.queries.orders.recentOrders, { limit });
+      data["recentOrders"] = await ctx.runQuery(api.queries.orders.recentOrders, { sessionToken, limit });
     }
 
     // Orders query
@@ -140,6 +141,7 @@ async function executeGraphQL(
       const status = statusMatch ? statusMatch[1] : variables.status;
 
       const orders = await ctx.runQuery(api.queries.orders.list, {
+        sessionToken,
         status,
         paginationOpts: { numItems: limit, cursor: null },
       });
@@ -151,6 +153,7 @@ async function executeGraphQL(
       const periodMatch = clean.match(/period\s*:\s*"([^"]+)"/);
       const period = (periodMatch ? periodMatch[1] : variables.period) ?? "today";
       data["kpiSnapshot"] = await ctx.runQuery(api.queries.analytics.kpiSnapshot, {
+        sessionToken,
         period: period as any,
       });
     }
@@ -163,6 +166,7 @@ async function executeGraphQL(
       const status = statusMatch ? statusMatch[1] : variables.status;
 
       data["updateOrderStatus"] = await ctx.runMutation(api.mutations.orders.updateStatus, {
+        sessionToken,
         orderNumber,
         status,
       });
@@ -178,6 +182,7 @@ async function executeGraphQL(
       const reason = (reasonMatch ? reasonMatch[1] : variables.reason) ?? "adjustment";
 
       data["adjustStock"] = await ctx.runMutation(api.mutations.stock.adjust, {
+        sessionToken,
         sku,
         delta,
         reason,
@@ -186,8 +191,14 @@ async function executeGraphQL(
 
     return { data };
   } catch (err: any) {
-    return { data, errors: [{ message: err.message ?? "Erreur lors de l'exécution GraphQL" }] };
+    const message = err?.data?.message ?? err.message ?? "Erreur lors de l'exécution GraphQL";
+    return { data, errors: [{ message }] };
   }
+}
+
+function bearer(request: Request) {
+  const header = request.headers.get("authorization") ?? "";
+  return header.toLowerCase().startsWith("bearer ") ? header.slice(7).trim() : "";
 }
 
 // ─── HTTP Routes ──────────────────────────────────────────────────────────────
@@ -242,7 +253,7 @@ http.route({
     // Exécution query GET
     const variablesRaw = url.searchParams.get("variables");
     const variables = variablesRaw ? JSON.parse(variablesRaw) : {};
-    const result = await executeGraphQL(ctx, query, variables);
+    const result = await executeGraphQL(ctx, query, variables, bearer(request));
 
     return new Response(JSON.stringify(result), {
       status: 200,
@@ -270,7 +281,7 @@ http.route({
         );
       }
 
-      const result = await executeGraphQL(ctx, body.query, body.variables ?? {});
+      const result = await executeGraphQL(ctx, body.query, body.variables ?? {}, bearer(request));
       return new Response(JSON.stringify(result), {
         status: 200,
         headers: { "Content-Type": "application/json", ...CORS_HEADERS },

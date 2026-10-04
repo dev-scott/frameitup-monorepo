@@ -5,10 +5,15 @@ import { Topbar } from "@/components/layout/Topbar";
 import { AlertTriangle, AlertCircle, CheckCircle2, Plus, Search, RefreshCw } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "@/lib/convex";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function StockPage() {
   const [search, setSearch] = useState("");
-  const stockItems = useQuery(api.queries.stock.listAll);
+  const { token } = useAuth();
+  const stockItems = useQuery(
+    api.queries.stock.listAll,
+    token ? { sessionToken: token } : "skip"
+  );
 
   const filteredStock = stockItems?.filter((item: any) => {
     if (!search.trim()) return true;

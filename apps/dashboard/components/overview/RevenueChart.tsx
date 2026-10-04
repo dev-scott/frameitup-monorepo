@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { useQuery } from "convex/react";
 import { api } from "@/lib/convex";
+import { useAuth } from "@/lib/AuthContext";
 
 const PERIOD_DAYS: Record<"7J" | "30J" | "3M", number> = {
   "7J": 7,
@@ -48,8 +49,12 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 export function RevenueChart() {
   const [period, setPeriod] = useState<"7J" | "30J" | "3M">("30J");
   const days = PERIOD_DAYS[period];
+  const { token } = useAuth();
 
-  const dbData = useQuery(api.queries.analytics.dailyRevenue, { days });
+  const dbData = useQuery(
+    api.queries.analytics.dailyRevenue,
+    token ? { sessionToken: token, days } : "skip"
+  );
 
   // Préparer un jeu de données complet pour chaque jour
   const chartData = useMemo(() => {

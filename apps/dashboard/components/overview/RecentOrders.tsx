@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ChevronRight, ExternalLink } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "@/lib/convex";
+import { useAuth } from "@/lib/AuthContext";
 
 const STATUS_CONFIG = {
   pending:    { label: "En attente",     className: "badge badge-pending" },
@@ -27,7 +28,11 @@ function formatRelativeTime(timestamp: number) {
 }
 
 export function RecentOrders() {
-  const orders = useQuery(api.queries.orders.recentOrders, { limit: 5 });
+  const { token } = useAuth();
+  const orders = useQuery(
+    api.queries.orders.recentOrders,
+    token ? { sessionToken: token, limit: 5 } : "skip"
+  );
 
   return (
     <div className="glass-card" style={{ padding: "1.5rem" }}>
