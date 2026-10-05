@@ -53,13 +53,13 @@ export const listAll = query({
         .order("desc")
         .collect();
     }
-    if (args.category && args.category !== "all") {
-      return await ctx.db
-        .query("products")
-        .withIndex("by_category", (q) => q.eq("category", args.category as any))
-        .order("desc")
-        .collect();
-    }
+    // if (args.category && args.category !== "all") {
+    //   return await ctx.db
+    //     .query("products")
+    //     .withIndex("by_category", (q) => q.eq("category", args.category as any))
+    //     .order("desc")
+    //     .collect();
+    // }
     return await ctx.db.query("products").order("desc").collect();
   },
 });
