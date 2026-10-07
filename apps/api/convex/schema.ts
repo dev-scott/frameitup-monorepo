@@ -226,12 +226,34 @@ export default defineSchema({
     .searchIndex("search_orders", { searchField: "customerEmail", filterFields: ["status"] }),
 
   orderEvents: defineTable({
-    orderId: v.id("orders"),
+    orderId: v.union(v.id("orders"), v.string()),
     fromStatus: v.optional(v.string()),
-    toStatus: v.string(),
+    toStatus: v.optional(v.string()),
+    status: v.optional(v.string()),
+    message: v.optional(v.string()),
     notes: v.optional(v.string()),
+    timestamp: v.optional(v.number()),
     performedBy: v.optional(v.id("users")),
   }).index("by_order", ["orderId"]),
+
+  // ─── Activité Marketplace (Website) ───────────────────────────────────────
+  marketplaceActivity: defineTable({
+    type: v.union(v.literal("purchase"), v.literal("new_listing"), v.literal("drop")),
+    artworkId: v.string(),
+    artworkTitle: v.string(),
+    userId: v.optional(v.string()),
+    timestamp: v.number(),
+  }),
+
+  // ─── Notifications (Website) ──────────────────────────────────────────────
+  notifications: defineTable({
+    userId: v.string(),
+    type: v.string(),
+    title: v.string(),
+    body: v.string(),
+    read: v.boolean(),
+    createdAt: v.number(),
+  }).index("by_user", ["userId"]),
 
   // ─── Finances ──────────────────────────────────────────────────────────────
   transactions: defineTable({
