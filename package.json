@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "pnpm --parallel -r --filter \"./apps/*\" run dev",
     "dev:web": "pnpm --filter @frameitup/web run dev",
+    "dev:website": "pnpm --filter @frameitup/website run dev",
     "dev:dashboard": "pnpm --filter @frameitup/dashboard run dev",
     "dev:api": "pnpm --filter @frameitup/api run dev",
     "build": "pnpm -r --filter \"./apps/*\" run build",

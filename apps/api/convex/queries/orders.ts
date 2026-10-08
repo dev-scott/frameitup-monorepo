@@ -125,3 +125,34 @@ export const recentOrders = query({
       .take(Math.min(args.limit ?? 10, 100));
   },
 });
+
+export const listByCustomerEmail = query({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    const email = args.email.trim().toLowerCase();
+    const orders = await ctx.db
+      .query("orders")
+      .filter((q) => q.eq(q.field("customerEmail"), email))
+      .order("desc")
+      .take(50);
+    return orders;
+  },
+});
+
+export const trackOrder = query({
+  args: { ref: v.string() },
+  handler: async (ctx, args) => {
+    const ref = args.ref.trim();
+    if (!ref) return null;
+    const byNumber = await ctx.db
+      .query("orders")
+      .withIndex("by_number", (q) => q.eq("orderNumber", ref))
+      .first();
+    if (byNumber) return byNumber;
+    return await ctx.db
+      .query("orders")
+      .filter((q) => q.eq(q.field("trackingNumber"), ref))
+      .first();
+  },
+});
+
