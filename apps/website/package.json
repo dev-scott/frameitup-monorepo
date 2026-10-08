@@ -39,8 +39,8 @@
   "devDependencies": {
     "@frameitup/config": "file:../../packages/config",
     "@types/node": "^22.15.29",
-    "@types/react": "^18.3.23",
-    "@types/react-dom": "^18.3.7",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
     "@types/three": "^0.177.0",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.4",
