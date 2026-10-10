@@ -833,7 +833,7 @@ export default function ConfigurePage() {
 
               {/* Bouton de finalisation vers Checkout */}
               <Button
-                variant="default"
+                variant="primary"
                 size="lg"
                 className="w-full justify-center text-base py-4 font-bold shadow-brand hover:scale-[1.01] transition-transform"
                 onClick={() => router.push('/checkout')}
