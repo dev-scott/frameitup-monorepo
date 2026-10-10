@@ -6,9 +6,272 @@ import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { useLanguageStore } from '@/store/use-language-store';
 
-/* ─── Icons ─────────────────────────────────────────── */
+/* ─── Icons ──────────────────────────────────────────────── */
+function SunIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="5" />
+      <line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" />
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+      <line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" />
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+    </svg>
+  );
+}
+
+function MoonIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+  );
+}
+
+function MenuIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+}
+
+/* ─── Nav links ───────────────────────────────────────────── */
+const NAV_LINKS = [
+  { href: '/boutique', label: 'Boutique' },
+  { href: '/configure', label: 'Créer mon cadre' },
+  { href: '/#finitions', label: 'Nos finitions' },
+  { href: '/#avis', label: 'Avis' },
+];
+
+/* ─── Main Navbar ─────────────────────────────────────────── */
+export function Navbar() {
+  const { setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    setMounted(true);
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const toggleTheme = () => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
+
+  const isActive = (href: string) =>
+    href === '/' ? pathname === '/' : pathname.startsWith(href.split('#')[0]) && href !== '/';
+
+  return (
+    <>
+      <motion.header
+        initial={{ y: -80, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          scrolled
+            ? 'py-2.5 bg-[var(--glass-bg)] backdrop-blur-xl border-b border-[var(--border)]'
+            : 'py-4 bg-transparent'
+        }`}
+        style={{ boxShadow: scrolled ? 'var(--shadow-sm)' : 'none' }}
+      >
+        <nav className="max-w-6xl mx-auto px-5 flex items-center justify-between gap-6">
+          {/* Logo */}
+          <Link href="/" className="flex-shrink-0 group">
+            <div className="transition-transform duration-300 group-hover:scale-[1.03]">
+              {mounted ? (
+                <Image
+                  src={resolvedTheme === 'dark' ? '/frameitup_logo_white.svg' : '/frameitup_logo_black.svg'}
+                  alt="FrameItUp"
+                  width={130}
+                  height={36}
+                  priority
+                />
+              ) : (
+                <div style={{ width: 130, height: 36 }} />
+              )}
+            </div>
+          </Link>
+
+          {/* Desktop nav — centre */}
+          <div className="hidden lg:flex items-center gap-1">
+            {NAV_LINKS.map(link => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  isActive(link.href)
+                    ? 'text-[var(--brand-500)] bg-[var(--bg-secondary)]'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]'
+                }`}
+              >
+                {link.label}
+                {link.href === '/boutique' && (
+                  <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-[var(--brand-500)] text-white leading-none">
+                    NEW
+                  </span>
+                )}
+              </Link>
+            ))}
+          </div>
+
+          {/* Right actions */}
+          <div className="flex items-center gap-2">
+            {/* Theme toggle */}
+            {mounted && (
+              <motion.button
+                whileTap={{ scale: 0.88 }}
+                onClick={toggleTheme}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-all duration-200"
+                aria-label="Changer le thème"
+                id="theme-toggle-btn"
+              >
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={resolvedTheme}
+                    initial={{ rotate: -90, opacity: 0, scale: 0.8 }}
+                    animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                    exit={{ rotate: 90, opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.18 }}
+                  >
+                    {resolvedTheme === 'dark' ? <SunIcon /> : <MoonIcon />}
+                  </motion.span>
+                </AnimatePresence>
+              </motion.button>
+            )}
+
+            {/* CTA */}
+            <Link
+              href="/configure"
+              id="navbar-cta-btn"
+              className="hidden sm:flex items-center gap-1.5 px-4 py-2 bg-[var(--brand-500)] hover:bg-[var(--brand-600)] text-white text-sm font-semibold rounded-xl transition-all duration-200 shadow-[var(--shadow-brand)] hover:-translate-y-px"
+            >
+              Commencer
+              <span className="opacity-70 text-xs">→</span>
+            </Link>
+
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="lg:hidden w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-muted)] hover:bg-[var(--bg-secondary)] transition-all duration-200"
+              aria-label="Menu"
+              id="mobile-menu-btn"
+            >
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={mobileOpen ? 'close' : 'open'}
+                  initial={{ rotate: -90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: 90, opacity: 0 }}
+                  transition={{ duration: 0.14 }}
+                >
+                  {mobileOpen ? <CloseIcon /> : <MenuIcon />}
+                </motion.span>
+              </AnimatePresence>
+            </button>
+          </div>
+        </nav>
+      </motion.header>
+
+      {/* Mobile drawer */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileOpen(false)}
+              className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm lg:hidden"
+            />
+            {/* Panel */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+              className="fixed top-0 right-0 bottom-0 z-50 w-64 bg-[var(--bg-card)] border-l border-[var(--border)] shadow-xl lg:hidden flex flex-col"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-5 border-b border-[var(--border)]">
+                <span className="text-sm font-semibold text-[var(--text-primary)]">Menu</span>
+                <button
+                  onClick={() => setMobileOpen(false)}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
+                >
+                  <CloseIcon />
+                </button>
+              </div>
+
+              {/* Links */}
+              <div className="flex flex-col gap-0.5 p-3 flex-1">
+                {NAV_LINKS.map((link, i) => (
+                  <motion.div
+                    key={link.href}
+                    initial={{ x: 16, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: i * 0.06 }}
+                  >
+                    <Link
+                      href={link.href}
+                      onClick={() => setMobileOpen(false)}
+                      className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                        isActive(link.href)
+                          ? 'bg-[var(--bg-secondary)] text-[var(--brand-500)]'
+                          : 'text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]'
+                      }`}
+                    >
+                      {link.label}
+                      {link.href === '/boutique' && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-[var(--brand-500)] text-white leading-none">
+                          NEW
+                        </span>
+                      )}
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 border-t border-[var(--border)] flex flex-col gap-3">
+                <Link
+                  href="/configure"
+                  onClick={() => setMobileOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[var(--brand-500)] hover:bg-[var(--brand-600)] text-white text-sm font-semibold rounded-xl transition-all duration-200"
+                >
+                  Créer mon cadre →
+                </Link>
+                {/* Theme toggle in mobile */}
+                {mounted && (
+                  <button
+                    onClick={toggleTheme}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] rounded-xl transition-all duration-200"
+                  >
+                    {resolvedTheme === 'dark' ? <SunIcon /> : <MoonIcon />}
+                    {resolvedTheme === 'dark' ? 'Mode clair' : 'Mode sombre'}
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+
 function SunIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
